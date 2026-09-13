@@ -97,6 +97,6 @@ This project is part of a larger controls-engineering practice portfolio focused
 The goal is not simply to make the ladder logic run, but to understand **why each instruction exists, what state it represents, and how that state is used elsewhere in the program**.
 
 ## Screenshots
-<img width="1427" height="630" alt="Screenshot 2026-09-12 at 8 52 01 PM" src="https://github.com/user-attachments/assets/e39b6dad-2735-4f3f-9575-683e7eb182b9" />
 <img width="1440" height="322" alt="Screenshot 2026-09-12 at 8 51 50 PM" src="https://github.com/user-attachments/assets/328b9bc8-b8fd-4876-870f-c18bd8a33868" />
+<img width="1427" height="630" alt="Screenshot 2026-09-12 at 8 52 01 PM" src="https://github.com/user-attachments/assets/e39b6dad-2735-4f3f-9575-683e7eb182b9" />
 <img width="1440" height="657" alt="Screenshot 2026-09-12 at 8 51 44 PM" src="https://github.com/user-attachments/assets/6dc30137-c2ab-4f05-ba3d-31825c2ba0c3" />
