@@ -218,3 +218,9 @@ A threshold violation must persist for five seconds before becoming an alarm. On
 The notification remains active independently so that an abnormal event cannot occur and disappear without operator awareness.
 
 > **Safety Note:** This is a PLC training project demonstrating process-control and alarm-management concepts. The logic shown is not a substitute for safety-rated level protection, independent overfill protection, or other required process-safety systems.
+
+<img width="1214" height="311" alt="Screenshot 2026-09-13 at 10 41 46 PM" src="https://github.com/user-attachments/assets/6569ba97-ac41-44c9-b352-49a683a34840" />
+<img width="1170" height="458" alt="Screenshot 2026-09-13 at 10 41 58 PM" src="https://github.com/user-attachments/assets/20e0bd78-626a-41dc-9123-037cb2041c8e" />
+<img width="1191" height="476" alt="Screenshot 2026-09-13 at 10 42 04 PM" src="https://github.com/user-attachments/assets/a1cd0dac-4dbe-41bf-ab40-6ae14c512468" />
+<img width="1189" height="478" alt="Screenshot 2026-09-13 at 10 42 19 PM" src="https://github.com/user-attachments/assets/966473e8-0452-44ef-bb19-f8e29488c07a" />
+
