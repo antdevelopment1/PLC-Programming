@@ -1,157 +1,213 @@
-# Conveyor Jam Detection
+# Conveyor Control with Jam Detection and Fault Recovery
 
-## Overview
+## 🔍 Overview
 
-This project is a PLC ladder logic exercise built in **RSLogix 500**.
+A PLC conveyor-control project that combines start/stop control, operating permissives, photoeye-based jam detection, fault latching, operator indication, and controlled fault recovery.
 
-The goal is to control a conveyor with Start/Stop operation, safety permissives, photoeye-based jam detection, fault latching, and controlled fault recovery.
+The conveyor runs only when its required permissives are satisfied. While the conveyor is running, a blocked photoeye starts a five-second timer. If the obstruction remains long enough for the timer to complete, the PLC latches a jam fault, stops the conveyor, activates fault indication, and prevents restart until the obstruction has been cleared and the operator performs a reset.
 
-The exercise focuses on designing machine behavior over time rather than simply turning an output on and off.
+## ⚙️ Platform & Tools
 
----
+* **Software:** RSLogix Micro Starter Lite
+* **PLC Family:** Allen-Bradley MicroLogix
+* **Language:** Ladder Logic
+* **Timer Instruction:** TON
+* **Fault Memory:** OTL / OTU latch-unlatch logic
 
-## Task
+## 🗺️ System I/O & Tags
 
-Program a conveyor that:
+### Physical Inputs
 
-- Starts from a momentary Start pushbutton
-- Continues running after the Start button is released
-- Stops when the Stop pushbutton is pressed
-- Requires the E-stop circuit to be healthy
-- Requires the machine guard to be closed
-- Detects a box blocking the photoeye for 5 seconds
-- Latches a jam fault when the 5-second timer completes
-- Stops the conveyor when a jam fault occurs
-- Turns on a fault indicator during a jam fault
-- Prevents the fault from being reset while the photoeye is still blocked
-- Requires a manual reset after the obstruction is removed
-- Prevents the conveyor from automatically restarting after the fault is reset
-- Requires the operator to press Start again before operation resumes
+* `I:0/0` - **START PB** - Momentary pushbutton requesting conveyor startup.
+* `I:0/1` - **STOP PB** - Operator stop command.
+* `I:0/2` - **RESET PB** - Operator command used to reset a cleared jam fault.
+* `I:0/3` - **ESTOP OK** - Indicates that the E-stop permissive is healthy.
+* `I:0/4` - **GUARD OK** - Indicates that the guard permissive is healthy.
+* `I:0/5` - **PE BOX BLOCK** - Photoeye signal indicating that a box or obstruction is blocking the sensor.
 
----
+### Physical Outputs
 
-## Inputs
+* `O:0/0` - **CONVEYOR MOTOR** - Physical output controlled by the internal conveyor run command.
+* `O:0/1` - **RUN COMMAND** - Output mapped from `B3:0/7 RUN_COMMAND`.
+* `O:0/2` - **JAM FAULT** - Output reflecting the latched jam-fault state.
+* `O:0/3` - **FAULT LIGHT** - Physical fault indication output.
+* `O:0/4` - **JAM TIMER** - Output mapped from `B3:0/10 JAM_TIMER`.
 
-| Input | Internal Tag | Description |
-|---|---|---|
-| `I:0/0` | `START_PB` | Momentary conveyor Start pushbutton |
-| `I:0/1` | `STOP_PB` | Conveyor Stop pushbutton |
-| `I:0/2` | `RESET_PB` | Jam fault Reset pushbutton |
-| `I:0/3` | `ESTOP_OK` | Indicates the E-stop circuit is healthy |
-| `I:0/4` | `GUARD_OK` | Indicates the machine guard is closed |
-| `I:0/5` | `PE_BOX_BLOCK` | Photoeye detects a box blocking the conveyor |
+> `RUN_COMMAND` and `JAM_TIMER` are present in the Digital I/O mapping, but the control logic shown in this project does not currently drive `B3:0/7` or `B3:0/10`. The actual jam timing function is performed by `T4:0`.
 
----
+### Internal Control Bits / Timers
 
-## Internal Control Tags
+* `B3:0/0` - **START_PB** - Internal mapped state of the Start pushbutton.
+* `B3:0/1` - **STOP_PB** - Internal mapped state of the Stop pushbutton.
+* `B3:0/2` - **RESET_PB** - Internal mapped state of the Reset pushbutton.
+* `B3:0/3` - **ESTOP_OK** - Internal mapped E-stop permissive.
+* `B3:0/4` - **GUARD_OK** - Internal mapped guard permissive.
+* `B3:0/5` - **PE_BOX_BLOCK** - Internal mapped photoeye state.
+* `B3:0/6` - **CONVEYOR_RUN** - Internal conveyor run command and seal-in bit.
+* `B3:0/7` - **RUN_COMMAND** - Internal bit mapped to `O:0/1`; no driving control rung is shown in the current logic.
+* `B3:0/8` - **JAM_FAULT** - Latched jam-fault memory bit.
+* `B3:0/9` - **FAULT_LIGHT** - Internal fault-indication command.
+* `B3:0/10` - **JAM_TIMER** - Internal bit mapped to `O:0/4`; separate from the actual `T4:0` timer.
+* `T4:0` - **PE_BOX_JAM_TIMER** - TON used to detect a persistent photoeye blockage.
+  * **Time Base:** 1.0 second
+  * **Preset:** 5 seconds
 
-| Address | Tag | Purpose |
-|---|---|---|
-| `B3:0/6` | `CONVEYOR_RUN` | Maintained conveyor run state |
-| `B3:0/8` | `JAM_FAULT` | Latched jam fault |
-| `B3:0/9` | `FAULT_LIGHT` | Internal fault-light command |
-| `T4:0` | `PE_BOX_JAM_TIMER` | 5-second photoeye jam timer |
+## 🛠️ Control Strategy & Key Rungs
 
----
+The program separates physical I/O from machine-control decisions:
 
-## Outputs
+**Physical Inputs → Internal B3 Bits → Control Logic → Internal Commands → Physical Outputs**
 
-| Output | Description |
-|---|---|
-| `O:0/0` | Conveyor motor command |
-| `O:0/3` | Jam fault indicator light |
+### MAIN Routine
 
----
+The Main routine coordinates program execution through two subroutines:
 
-## Control Strategy
+* **Rung 0000:** Calls `DIGITAL IO` (`U:3`)
+* **Rung 0001:** Calls `CONTROLS` (`U:4`)
 
-### Rung 0000 — Conveyor Start/Stop and Safety Permissives
+This keeps field I/O mapping separate from the conveyor's operating and fault logic.
 
-The conveyor can run only when the E-stop circuit is healthy, the guard is closed, no jam fault is active, and the Stop condition is satisfied.
+### DIGITAL IO Routine
 
-The Start pushbutton initially energizes `CONVEYOR_RUN`.
+The Digital I/O routine maps physical PLC inputs into internal memory:
 
-A parallel `CONVEYOR_RUN` contact creates a seal-in circuit so the operator does not have to continuously hold the Start button.
+* `I:0/0` → `B3:0/0 START_PB`
+* `I:0/1` → `B3:0/1 STOP_PB`
+* `I:0/2` → `B3:0/2 RESET_PB`
+* `I:0/3` → `B3:0/3 ESTOP_OK`
+* `I:0/4` → `B3:0/4 GUARD_OK`
+* `I:0/5` → `B3:0/5 PE_BOX_BLOCK`
 
-If a safety condition or jam fault breaks the rung, `CONVEYOR_RUN` drops out and its seal-in is lost. Restoring the condition therefore does not automatically restart the conveyor.
+It also maps internal commands/status bits to physical outputs:
 
----
+* `B3:0/6 CONVEYOR_RUN` → `O:0/0 CONVEYOR MOTOR`
+* `B3:0/7 RUN_COMMAND` → `O:0/1 RUN COMMAND`
+* `B3:0/8 JAM_FAULT` → `O:0/2 JAM FAULT`
+* `B3:0/9 FAULT_LIGHT` → `O:0/3 FAULT LIGHT`
+* `B3:0/10 JAM_TIMER` → `O:0/4 JAM TIMER`
 
-### Rung 0001 — Photoeye Jam Detection
+## 🛠️ Controls Routine
+
+### Rung 0000 — Conveyor Start/Stop and Permissives
+
+The conveyor can run only when:
+
+* `ESTOP_OK` is true
+* The Stop command is not active
+* `GUARD_OK` is true
+* `JAM_FAULT` is not active
+* Start has been requested or the conveyor is already sealed in
+
+`CONVEYOR_RUN` is placed in parallel with the momentary Start command to create the seal-in circuit.
+
+This allows the conveyor to continue running after the Start pushbutton is released while immediately removing the run command if a required permissive is lost.
+
+### Rung 0001 — Photoeye Jam Detection Timer
 
 The jam timer runs only when:
 
-`CONVEYOR_RUN = TRUE`
+* `CONVEYOR_RUN` is active, and
+* `PE_BOX_BLOCK` is active.
 
-and
+These conditions start `T4:0 PE_BOX_JAM_TIMER`.
 
-`PE_BOX_BLOCK = TRUE`
+The timer has:
 
-The timer preset is **5 seconds**.
+* **Time base:** 1 second
+* **Preset:** 5 seconds
 
-If the box passes the photoeye before five seconds, the TON resets normally.
-
-If the photoeye remains blocked for the full five seconds, `T4:0/DN` becomes true.
-
----
+A brief photoeye interruption therefore does not create a jam fault. The obstruction must remain continuously present for five seconds.
 
 ### Rung 0002 — Jam Fault Latch
 
-When the jam timer reaches its preset:
+When `T4:0/DN` becomes true, the PLC executes an `OTL` instruction on:
 
-`T4:0/DN = TRUE`
+`B3:0/8 JAM_FAULT`
 
-an `OTL` instruction latches `JAM_FAULT`.
+The fault therefore remains stored even after the conveyor stops and the timer subsequently resets.
 
-Using a latched fault allows the timer to reset after the conveyor stops without losing the stored fault condition.
+Because `JAM_FAULT` is also used as an XIO interlock in Rung 0000, the newly latched fault breaks the conveyor seal-in logic and removes `CONVEYOR_RUN`.
 
----
+### Rung 0003 — Jam Fault Indication
 
-### Rung 0003 — Fault Indication
+When `B3:0/8 JAM_FAULT` is active, the PLC energizes:
 
-When `JAM_FAULT` is active, `FAULT_LIGHT` is energized.
+`B3:0/9 FAULT_LIGHT`
 
-The fault indication follows the stored fault rather than the timer itself.
+The Digital I/O routine then maps this command to:
 
----
+`O:0/3 FAULT LIGHT`
+
+This provides a visible indication that the machine is in a faulted condition.
 
 ### Rung 0004 — Jam Fault Reset
 
-The jam fault can only be cleared when:
+The jam fault can be cleared only when:
 
-`RESET_PB = TRUE`
+* `RESET_PB` is pressed, and
+* `PE_BOX_BLOCK` is false.
 
-and
+An `OTU` instruction then unlatches:
 
-`PE_BOX_BLOCK = FALSE`
+`B3:0/8 JAM_FAULT`
 
-An `OTU` instruction clears `JAM_FAULT`.
+Requiring the photoeye to be clear prevents the operator from resetting the fault while the condition that caused the jam is still present.
 
-If the obstruction is still blocking the photoeye, the reset is prevented.
+## 🛡️ Safety & Fault Recovery Behavior
 
----
+### Operating Permissives
 
-## Normal Operating Sequence
+The conveyor run command depends on:
 
-```text
-E-stop healthy
-        ↓
-Guard closed
-        ↓
-No active jam fault
-        ↓
-Operator presses START
-        ↓
-CONVEYOR_RUN energizes
-        ↓
-Seal-in maintains conveyor operation
-        ↓
-Box enters photoeye
-        ↓
-Jam timer begins
-        ↓
-Box leaves before 5 seconds
-        ↓
-Timer resets
-        ↓
-Conveyor continues running
+* E-stop permissive healthy
+* Guard permissive healthy
+* Stop command inactive
+* No active jam fault
+
+Loss of a required permissive breaks the run circuit and causes `CONVEYOR_RUN` to de-energize.
+
+### Jam Detection
+
+A blocked photoeye does **not** immediately fault the machine.
+
+The PLC requires:
+
+**Conveyor Running + Photoeye Blocked continuously for 5 seconds**
+
+before declaring a jam.
+
+This prevents normal short-duration product detection from being interpreted as a fault.
+
+### Fault Response
+
+Once the five-second timer reaches done:
+
+1. `JAM_FAULT` is latched.
+2. The active jam-fault interlock breaks the conveyor run circuit.
+3. `CONVEYOR_RUN` drops out.
+4. The conveyor motor output turns off.
+5. The fault-light command energizes.
+6. The fault remains stored until a valid reset occurs.
+
+### Recovery Sequence
+
+To recover from a jam:
+
+1. Identify and remove the obstruction.
+2. Confirm the photoeye is clear.
+3. Confirm the E-stop and guard permissives are healthy.
+4. Press the Reset pushbutton.
+5. The PLC unlatches `JAM_FAULT`.
+6. The fault indication clears.
+7. Press Start to begin a new conveyor run.
+
+The conveyor does **not automatically restart** when the fault is reset because the original `CONVEYOR_RUN` seal-in was broken when the fault occurred. A new Start command is required.
+
+> **Safety Note:** `ESTOP_OK` and `GUARD_OK` are used as standard PLC permissives in this training project. The logic shown is not a safety-rated implementation of an emergency-stop or machine-guarding system. Personnel-protection functions require appropriate safety-rated hardware and circuit design.
+
+
+<img width="1436" height="713" alt="Screenshot 2026-09-13 at 10 25 04 PM" src="https://github.com/user-attachments/assets/7bf88c0f-a699-4185-941f-4ba9926ed062" />
+<img width="1433" height="694" alt="Screenshot 2026-09-13 at 10 25 13 PM" src="https://github.com/user-attachments/assets/0f023050-7f88-4833-a602-6a33b903361a" />
+<img width="1218" height="347" alt="Screenshot 2026-09-13 at 10 25 34 PM" src="https://github.com/user-attachments/assets/3705261f-30ba-447e-9a01-19700a62b7f3" />
+<img width="1213" height="441" alt="Screenshot 2026-09-13 at 10 25 49 PM" src="https://github.com/user-attachments/assets/f2efc1fe-7d21-453e-a377-b70b58e46da0" />
+<img width="1209" height="536" alt="Screenshot 2026-09-13 at 10 25 56 PM" src="https://github.com/user-attachments/assets/68df7623-270a-417b-85d3-507e26f2a0de" />
