@@ -508,3 +508,8 @@ That created a clear refactoring opportunity:
 > **Use memory only when the process requires memory.**
 
 The project therefore demonstrates not only how I arrived at a working PLC program, but also how I evaluated my own solution afterward and identified a simpler implementation.
+
+<img width="1212" height="341" alt="Screenshot 2026-09-16 at 5 19 49 PM" src="https://github.com/user-attachments/assets/d3fae7b4-2add-41bf-956b-8432fda18d02" />
+<img width="1208" height="518" alt="Screenshot 2026-09-16 at 5 19 57 PM" src="https://github.com/user-attachments/assets/56c5691a-2467-42a5-9484-d7ad29f81426" />
+<img width="1203" height="547" alt="Screenshot 2026-09-16 at 5 20 03 PM" src="https://github.com/user-attachments/assets/8503b30e-0842-4b78-8e4e-ff7f60ddb5f9" />
+
