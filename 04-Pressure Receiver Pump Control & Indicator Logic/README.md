@@ -1,4 +1,3 @@
-````markdown
 # Pressure Receiver Pump Control & Indicator Logic
 
 A PLC programming exercise built in **RSLogix Micro Starter Lite** to practice digital I/O mapping, pressure-based pump control, hysteresis, retained-state logic, truth-table analysis, and ladder-logic refactoring.
@@ -509,8 +508,6 @@ That created a clear refactoring opportunity:
 > **Use memory only when the process requires memory.**
 
 The project therefore demonstrates not only how I arrived at a working PLC program, but also how I evaluated my own solution afterward and identified a simpler implementation.
-````
-
 
 <img width="1212" height="341" alt="Screenshot 2026-09-16 at 5 19 49 PM" src="https://github.com/user-attachments/assets/0a73f6a6-3074-4f25-a098-79eb75e5e8db" />
 <img width="1208" height="518" alt="Screenshot 2026-09-16 at 5 19 57 PM" src="https://github.com/user-attachments/assets/78052336-061a-46fc-ab9b-9f2872491337" />
