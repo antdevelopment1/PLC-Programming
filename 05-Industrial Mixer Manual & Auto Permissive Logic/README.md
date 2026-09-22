@@ -1,6 +1,12 @@
+FOLDER NAME:
+05-Industrial Mixer Manual & Auto Permissive Logic
+
+
 # Industrial Mixer Manual & Auto Permissive Logic
 
 A PLC programming exercise built in **CODESYS** to practice Boolean logic, permissives, seal-in logic, manual/automatic operating modes, PLC scan behavior, and ladder-logic refactoring.
+
+---
 
 ## 🔍 Overview
 
@@ -20,7 +26,7 @@ Once the mixer starts, it must remain running after the Start button is released
 
 When **Auto Mode** is active:
 
-- The mixer may start automatically when the **lid is closed**
+- The mixer may run automatically when the **lid is closed**
 - The **Operator Ready** condition is not required
 
 ### Stop Conditions
