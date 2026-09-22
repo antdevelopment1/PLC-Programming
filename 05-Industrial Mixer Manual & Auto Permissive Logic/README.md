@@ -1,4 +1,3 @@
-<img width="934" height="384" alt="Screenshot 2026-09-22 at 1 05 05 AM" src="https://github.com/user-attachments/assets/17a95f46-9a9f-4099-9ca4-aabf5fce013c" />
 <!-- Folder Name: 05-Industrial Mixer Manual & Auto Permissive Logic -->
 
 # Industrial Mixer Manual & Auto Permissive Logic
