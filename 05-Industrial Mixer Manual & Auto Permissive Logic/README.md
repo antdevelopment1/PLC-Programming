@@ -1,8 +1,12 @@
+<img width="934" height="384" alt="Screenshot 2026-09-22 at 1 05 05 AM" src="https://github.com/user-attachments/assets/17a95f46-9a9f-4099-9ca4-aabf5fce013c" />
 <!-- Folder Name: 05-Industrial Mixer Manual & Auto Permissive Logic -->
 
 # Industrial Mixer Manual & Auto Permissive Logic
 
 A **CODESYS Ladder Diagram** exercise focused on translating process requirements into PLC logic, implementing manual and automatic operating modes, using seal-in logic, and refactoring an initial solution after identifying a multiple-output-write issue.
+
+<img width="943" height="386" alt="Screenshot 2026-09-22 at 1 05 30 AM" src="https://github.com/user-attachments/assets/39de0080-b7a0-4e34-926e-6b11f6ee29ad" />
+
 
 ---
 
@@ -637,31 +641,6 @@ PLC_PRG
     │
     └── xRunMixer
 ```
-
----
-
-# 📸 Initial Implementation
-
-The first version separated Manual and Auto operation into two independent output rungs.
-
-Add the original screenshot here:
-
-```markdown
-![Initial Mixer Logic](./initial-mixer-logic.png)
-```
-
----
-
-# 📸 Refactored Implementation
-
-The final version combines Manual and Auto operation into parallel paths controlling one `xRunMixer` output.
-
-Add the final screenshot here:
-
-```markdown
-![Refactored Mixer Logic](./refactored-mixer-logic.png)
-```
-
 ---
 
 # 💡 Key Takeaway
