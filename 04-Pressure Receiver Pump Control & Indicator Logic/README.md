@@ -1,79 +1,24 @@
 # Pressure Receiver Pump Control & Indicator Logic
 
-A PLC programming exercise built in **RSLogix Micro Starter Lite** to practice digital I/O mapping, pressure-based pump control, hysteresis, retained-state logic, truth-table analysis, and ladder-logic refactoring.
+## 🧠 How My Understanding of the Problem Evolved
 
-## 🔍 Overview
+The most important part of this project was not simply arriving at working ladder logic. It was discovering a repeatable way to reason from a written process description into explicit control logic, then learning where that reasoning was sufficient and where additional control concepts were required.
 
-This project controls pressure inside a receiver using two pressure switches and a single pump.
+My understanding developed in three major stages:
 
-The process uses:
-
-- A **low-pressure switch** that closes at 90 PSI and above
-- A **high-pressure switch** that closes at 110 PSI and above
-- A **pressure pump** used to increase receiver pressure
-- A **pressure indicator light** that illuminates once the low-pressure threshold is reached
-
-The pump must:
-
-- Start when pressure is below 90 PSI
-- Continue running after the low-pressure switch closes
-- Stop when pressure reaches 110 PSI
-- Remain stopped while pressure falls back below 110 PSI
-- Restart only after pressure falls below 90 PSI
-
-This creates a basic **hysteresis control pattern**, using separate start and stop thresholds instead of cycling the pump around a single pressure point.
+1. Use a truth/state table to derive explicit logic from the process requirements.
+2. Use repeated states in that table to determine when the PLC must remember previous process history.
+3. Recognize that logically correct states still do not account for the behavior of real physical inputs over time.
 
 ---
 
-## ⚙️ Platform & Tools
+## 1. Using a Truth Table to Turn Process Requirements Into Explicit Logic
 
-- **PLC:** Allen-Bradley MicroLogix 1100 Series B
-- **Programming Software:** RSLogix Micro Starter Lite / RSLogix 500
-- **Simulation:** RSLogix Emulate
-- **Language:** Ladder Logic
+I did not begin by guessing which ladder instructions I should use.
 
----
+I first translated the written process requirements into a truth/state table.
 
-## 🗺️ System I/O & Tags
-
-### Physical Inputs
-
-| Address | Tag | Description |
-|---|---|---|
-| `I:0/0` | Low Pressure Switch | Closes at 90 PSI and above |
-| `I:0/1` | High Pressure Switch | Closes at 110 PSI and above |
-
-### Physical Outputs
-
-| Address | Tag | Description |
-|---|---|---|
-| `O:0/0` | Pressure Pump | Raises receiver pressure |
-| `O:0/1` | Pressure Indicator Light | Indicates the low-pressure threshold has been reached |
-
-### Internal Control Bits
-
-| Address | Tag | Purpose |
-|---|---|---|
-| `B3:0/0` | `LOW_PRESSURE_SWITCH` | Internal representation of the low-pressure input |
-| `B3:0/1` | `HIGH_PRESSURE_SWITCH` | Internal representation of the high-pressure input |
-| `B3:0/2` | `PRESSURE_PUMP` | Internal pump command |
-| `B3:0/3` | `PRESSURE_IND_LIGHT` | Internal pressure indicator command |
-
----
-
-## 🧠 Problem-Solving Process
-
-Rather than beginning directly with ladder logic, I first translated the required test sequence into a **truth/state table**.
-
-This made it easier to separate three questions:
-
-1. What are the current input states?
-2. What should each output be in that state?
-3. Does the required output depend only on the current inputs, or does it also depend on what happened previously?
-
-### Step 1 — Build the State Table
-
-The required sequence can be represented as:
+The required sequence was:
 
 | Process State | Low | High | Pump | Indicator |
 |---|---:|---:|---:|---:|
@@ -83,431 +28,667 @@ The required sequence can be represented as:
 | Falling below 110 PSI | 1 | 0 | OFF | ON |
 | Falling below 90 PSI | 0 | 0 | ON | OFF |
 
-### Step 2 — Identify Repeated Input Combinations
+This was the first major lesson from the project.
 
-The table contains repeated input combinations.
+The table gave me a way to take a process description written in English and make the required logic explicit.
 
-For example:
+Instead of thinking:
 
-```text
-LOW = 1
-HIGH = 0
-```
+> "What ladder rung should I write?"
 
-appears twice.
+I could first ask:
 
-However, the required pump output is different:
+> "For this exact combination of inputs, what should each output be?"
 
-```text
-Pressure rising:
-LOW = 1
-HIGH = 0
-PUMP = ON
-```
+That gave me a repeatable reasoning process:
 
-but later:
+    Written Process Requirement
+            ↓
+    Identify Physical Inputs
+            ↓
+    Identify Required Outputs
+            ↓
+    Enumerate Process States
+            ↓
+    Assign Explicit 0 / 1 Conditions
+            ↓
+    Translate Those Conditions Into Ladder Logic
 
-```text
-Pressure falling:
-LOW = 1
-HIGH = 0
-PUMP = OFF
-```
+The truth table therefore became more than a way to test the finished program.
 
-That means the current inputs alone are **not enough to determine the pump state**.
+It became a design tool.
 
-The PLC must retain some information about what happened previously.
+It allowed me to derive the logical requirements before deciding which PLC instructions should implement them.
 
-This was the key clue that the pump required **memory / state persistence**.
+After building my ladder logic, I then used the same sequence to verify that every condition required by the assignment was actually met:
 
-### Step 3 — Remove True Duplicates
+    Below 90 PSI
+    LOW = 0
+    HIGH = 0
+    PUMP = ON
+    INDICATOR = OFF
 
-Where an input combination appeared more than once and required the **same output behavior**, I treated those rows as duplicates rather than building separate logic for each occurrence.
+    Rising above 90 PSI
+    LOW = 1
+    HIGH = 0
+    PUMP = ON
+    INDICATOR = ON
 
-Where the same inputs required **different outputs depending on the previous process state**, I kept that distinction because it indicated that memory was required.
+    At / above 110 PSI
+    LOW = 1
+    HIGH = 1
+    PUMP = OFF
+    INDICATOR = ON
 
-This reduced the process description into the minimum set of meaningful states before writing ladder logic.
+    Falling below 110 PSI
+    LOW = 1
+    HIGH = 0
+    PUMP = OFF
+    INDICATOR = ON
 
----
+    Falling below 90 PSI
+    LOW = 0
+    HIGH = 0
+    PUMP = ON
+    INDICATOR = OFF
 
-## 🛠️ Control Strategy & Key Rungs
+Every required state produced the expected result.
 
-### Digital I/O Mapping
-
-Physical inputs are first mapped into internal `B3` control bits.
-
-This keeps the physical I/O layer separate from the control logic and allows the controls file to operate using descriptive internal tags.
-
-The internal output commands are then mapped back to the physical outputs.
-
-```text
-Physical Input
-      ↓
-Internal B3 Bit
-      ↓
-Control Logic
-      ↓
-Internal Output Bit
-      ↓
-Physical Output
-```
-
-This structure makes the program easier to read, troubleshoot, and expand.
+That confirmed that the Boolean logic I had derived from the table was correct.
 
 ---
 
-## Pressure Pump Control
+## 2. The Truth Table Exposed When Memory Was Required
 
-The truth-table analysis showed that the pump requires **persistent state**.
+The next discovery came directly from the table itself.
 
-The same input combination:
+I noticed that the same input combination appeared more than once:
 
-```text
-LOW = 1
-HIGH = 0
-```
+    LOW = 1
+    HIGH = 0
 
-must produce two different results depending on where the process came from.
+At first, duplicate input combinations looked like something I might simply combine.
 
-### Rising Pressure
+But these two rows required different pump outputs.
 
-```text
-LOW = 1
-HIGH = 0
-PUMP = ON
-```
+While pressure was rising:
 
-The pump was already running before the low-pressure switch closed, so it must continue running.
+    LOW = 1
+    HIGH = 0
+    PUMP = ON
 
-### Falling Pressure
+Later, while pressure was falling:
 
-```text
-LOW = 1
-HIGH = 0
-PUMP = OFF
-```
+    LOW = 1
+    HIGH = 0
+    PUMP = OFF
 
-The high-pressure switch previously stopped the pump, so the pump must remain stopped until pressure falls below the low threshold.
+That was important.
 
-Because the current inputs cannot distinguish those two situations, the pump logic uses a **seal-in / hysteresis pattern** to preserve the previous operating state.
+If the PLC looked only at the current inputs, these two situations were identical:
 
-### Pump Sequence
+    LOW = 1
+    HIGH = 0
 
-When pressure is below 90 PSI:
+There was no Boolean expression using only those two current inputs that could simultaneously determine:
 
-- Low-pressure switch = OFF
-- High-pressure switch = OFF
-- Pump starts
+    PUMP = ON
 
-When pressure rises to 90 PSI and above:
-
-- Low-pressure switch closes
-- Pump remains energized through its own control bit
-
-When pressure reaches 110 PSI:
-
-- High-pressure switch closes
-- Pump stops
-
-When pressure falls below 110 PSI:
-
-- High-pressure switch opens
-- Pump remains stopped
-
-The pump does not restart until pressure falls below 90 PSI and the low-pressure switch opens.
-
-This produces the required hysteresis behavior without rapidly cycling the pump around a single pressure threshold.
-
----
-
-## Pressure Indicator Light — Original Solution
-
-I initially approached the indicator light using the **same state-table process** I used for the pump.
-
-The required sequence was:
-
-| Low | High | Indicator |
-|---:|---:|---:|
-| 0 | 0 | OFF |
-| 1 | 0 | ON |
-| 1 | 1 | ON |
-| 1 | 0 | ON |
-| 0 | 0 | OFF |
-
-My first implementation used **OTL / OTU retained-state logic**.
-
-### Light ON
-
-When:
-
-```text
-LOW_PRESSURE_SWITCH = 1
-HIGH_PRESSURE_SWITCH = 0
-```
-
-`PRESSURE_IND_LIGHT` is latched ON.
-
-### Light OFF
-
-When:
-
-```text
-LOW_PRESSURE_SWITCH = 0
-HIGH_PRESSURE_SWITCH = 0
-```
-
-`PRESSURE_IND_LIGHT` is unlatched.
-
-When both pressure switches are ON, neither instruction changes the light state, allowing the previously latched ON state to persist.
-
-This implementation reproduces the required test sequence.
-
----
-
-## 🔎 Reviewing the Indicator Solution
-
-Although the latch/unlatch implementation works, I did not prefer the result because it introduced **persistent memory into an output that did not actually require memory**.
-
-The pump and indicator initially looked similar because both were being derived from the same state table.
-
-The important difference became clearer after reviewing the completed logic.
-
-### Pump
-
-The same inputs can require different outputs:
-
-```text
-LOW = 1
-HIGH = 0
-```
-
-can mean:
-
-```text
-PUMP = ON
-```
-
-or:
-
-```text
-PUMP = OFF
-```
-
-depending on previous process history.
-
-Therefore:
-
-> **Pump state depends on current inputs + previous state.**
-
-Memory is required.
-
-### Indicator
-
-For the indicator:
-
-```text
-LOW = 0 → LIGHT = OFF
-LOW = 1 → LIGHT = ON
-```
-
-The desired light state does not actually depend on how the process reached that condition.
-
-Therefore:
-
-> **Indicator state depends only on the current process condition.**
-
-Memory is not required.
-
-This was an important distinction that became apparent through reviewing and refactoring the original working solution.
-
----
-
-## ♻️ Refactor Opportunity — Indicator Light
-
-A simpler implementation would remove the latch/unlatch pair and allow the indicator to directly follow the low-pressure condition through a normal **OTE**.
-
-Conceptually:
-
-```text
-LOW_PRESSURE_SWITCH          PRESSURE_IND_LIGHT
---------] [------------------------( )--------
-```
-
-The behavior then becomes:
-
-```text
-LOW_PRESSURE_SWITCH = 1
-        ↓
-Rung TRUE
-        ↓
-Indicator ON
-```
+in one situation,
 
 and:
 
-```text
-LOW_PRESSURE_SWITCH = 0
-        ↓
-Rung FALSE
-        ↓
-Indicator OFF automatically
-```
+    PUMP = OFF
 
-No separate de-energize instruction is required because an OTE is reevaluated every PLC scan.
+in the other.
 
-### Why the Refactor Is Cleaner
+That meant I was missing information.
 
-The refactored version:
+The missing information was:
 
-- Reduces two control rungs to one
-- Removes unnecessary retained state
-- Eliminates separate latch and unlatch instructions
-- Directly represents the physical process condition
-- Makes abnormal input combinations easier to reason about
-- Reduces the number of states the programmer must mentally track
-- Improves readability during troubleshooting
+> What happened previously?
 
-The original latch/unlatch implementation is intentionally retained in the project because it documents the actual problem-solving process and demonstrates why a working solution can still be improved.
+This was how I discovered the need for process memory.
 
----
+The truth table itself exposed it.
 
-## 💡 State vs. Memory
+I could now use a general rule:
 
-One of the main lessons from this project was learning to distinguish between **state-based logic** and **memory-based logic**.
+> If identical current inputs require different outputs depending on how the process arrived there, the current inputs are not enough. Some previous state must be preserved.
 
-### OTE — Current State
+For the pump:
 
-An OTE answers:
+    Current Inputs
+          +
+    Previous Pump / Process State
+          ↓
+    Correct Pump State
 
-> **"Should this output be ON right now?"**
+This led directly to the seal-in / hysteresis logic.
 
-```text
-Rung TRUE  → Output ON
-Rung FALSE → Output OFF
-```
+When pressure was below 90 PSI, the pump started.
 
-This is appropriate when the output directly represents a current process condition.
+Once the pump was running and pressure crossed 90 PSI, the original start condition disappeared.
 
-### OTL / OTU — Retained Memory
+However, the pump could not stop there.
 
-A latch/unlatch pair answers:
+It needed to remember:
 
-> **"Did an event occur that I need to remember until another event clears it?"**
+> "I was already started."
 
-```text
-Set condition
-      ↓
-OTL
-      ↓
-State remains ON
+The pump's own control bit therefore became part of the holding path.
 
-Reset condition
-      ↓
-OTU
-      ↓
-State returns OFF
-```
+Conceptually:
 
-This is useful for conditions such as:
+    Low-pressure condition
+            ↓
+    Pump starts
+            ↓
+    Pump's own state becomes TRUE
+            ↓
+    Pump state holds itself ON
+            ↓
+    Pressure continues rising
+            ↓
+    High-pressure condition occurs
+            ↓
+    Holding path is broken
+            ↓
+    Pump stops
 
-- Fault memory
-- Alarm acknowledgment
-- Sequence states
-- Operator requests that must persist
-- Events that must remain recorded after the triggering condition disappears
+This was no longer just Boolean input/output logic.
 
-The presence of a repeated input combination with **different required outputs** is one indication that some form of persistent state may be necessary.
+It was stateful control.
 
----
+The system had history.
 
-## 🧪 Test Sequence
+That was also how I began to understand hysteresis.
 
-The finished program was evaluated using the required pressure-switch sequence:
+The pump does not use one threshold for both start and stop.
 
-| Step | Low | High | Pump | Indicator |
-|---|---:|---:|---:|---:|
-| Initial | 0 | 0 | ON | OFF |
-| Low switch closes | 1 | 0 | ON | ON |
-| High switch closes | 1 | 1 | OFF | ON |
-| High switch opens | 1 | 0 | OFF | ON |
-| Low switch opens | 0 | 0 | ON | OFF |
+It starts below 90 PSI and stops at 110 PSI.
 
-The pump and indicator logic were designed to satisfy each required process state.
+Between those two thresholds, the current pressure-switch states alone do not tell the complete story.
+
+The pump's existing state matters.
 
 ---
 
-## 🧠 Concepts Demonstrated
+## 3. Learning When Memory Is NOT Required
 
-- Truth-table development
-- State-table analysis
-- Identifying duplicate states
-- Identifying states that require process memory
-- Persistent-state reasoning
-- Digital input mapping
-- Digital output mapping
-- Internal control bits
-- XIC and XIO instructions
-- OTE instructions
-- OTL / OTU retained-state logic
-- Seal-in logic
-- Hysteresis control
-- PLC scan behavior
-- Separation of physical I/O and control logic
-- Testing against defined process states
-- Reviewing working logic for unnecessary complexity
-- Refactoring ladder logic for readability
+After discovering why the pump needed memory, I initially applied similar retained-state thinking to the indicator.
+
+My first indicator implementation used OTL / OTU instructions.
+
+It worked.
+
+It satisfied every state in the required test sequence.
+
+However, reviewing the truth table again exposed an important difference between the pump and the indicator.
+
+For the pump:
+
+    LOW = 1
+    HIGH = 0
+
+could mean:
+
+    PUMP = ON
+
+or:
+
+    PUMP = OFF
+
+depending on previous history.
+
+Therefore the pump requires memory.
+
+For the indicator, however:
+
+    LOW = 0
+        ↓
+    INDICATOR = OFF
+
+and:
+
+    LOW = 1
+        ↓
+    INDICATOR = ON
+
+The desired indicator state does not change depending on whether pressure is rising or falling.
+
+Its current state can be derived directly from the current process condition.
+
+Therefore:
+
+    Pump
+    =
+    Current Inputs + Previous State
+
+while:
+
+    Indicator
+    =
+    Current Process State
+
+This gave me another rule:
+
+> Do not use memory simply because an output needs to stay ON.
+
+Use memory when the required output cannot be determined from the current process state alone.
+
+That led me to refactor the indicator.
+
+Instead of:
+
+    Set condition
+        ↓
+    OTL
+        ↓
+    Remember ON
+
+and later:
+
+    Reset condition
+        ↓
+    OTU
+        ↓
+    Remember OFF
+
+the indicator could simply use:
+
+    LOW_PRESSURE_SWITCH
+            ↓
+    OTE PRESSURE_IND_LIGHT
+
+If LOW is TRUE, the indicator is ON.
+
+If LOW is FALSE, the indicator is OFF.
+
+No previous history needs to be remembered.
+
+This was an important refinement of what I had learned about PLC memory:
+
+> The question is not "Can I use a latch?"
+
+The question is:
+
+> "Does the physical process require the controller to remember something that is no longer represented by the current inputs?"
 
 ---
 
-## 📁 Program Structure
+## 4. Comparing My Program With the Instructor's Program
 
-```text
-MAIN
-│
-├── DIGITAL IO
-│   ├── Physical inputs → internal control bits
-│   └── Internal output bits → physical outputs
-│
-└── CONTROLS
-    ├── Pressure pump hysteresis / memory logic
-    └── Pressure indicator latch / unlatch logic
-```
+At this point, my solution satisfied every required state.
+
+The truth table had helped me:
+
+- derive explicit logic from the written requirements
+- identify hysteresis
+- discover when process history mattered
+- derive the need for memory
+- build a seal-in circuit
+- distinguish between outputs that required memory and outputs that did not
+- refactor unnecessary retained state
+- verify every state required by the assignment
+
+I then compared my implementation with the instructor's implementation.
+
+That comparison exposed an entirely different limitation.
+
+My reasoning had been focused primarily on:
+
+    Given these inputs,
+    what should the output be?
+
+The instructor's implementation introduced another question:
+
+    Before changing the machine state,
+    should I trust this physical input yet?
+
+My implementation effectively assumed:
+
+    Physical input changes
+            ↓
+    Boolean logic evaluates
+            ↓
+    Machine reacts
+
+That is logically valid.
+
+It also passed every condition specified by the exercise.
+
+But it assumes the field device changes state cleanly and that every state change should be acted upon immediately.
+
+A real pressure switch may be affected by:
+
+- vibration
+- pressure oscillation
+- fluid pulsation
+- mechanical contact bounce
+- electrical noise
+- a temporary threshold crossing
+
+That means:
+
+    INPUT = 1
+
+does not automatically answer:
+
+> "Has this physical condition existed long enough that I should allow it to change the machine?"
+
+The truth table contains state.
+
+It does not contain time.
+
+For example, these two situations look identical in a Boolean table:
+
+    LOW = 0 for 20 milliseconds
+
+and:
+
+    LOW = 0 for 5 seconds
+
+Both are simply:
+
+    LOW = 0
+
+But physically, they may deserve very different responses.
 
 ---
 
-## 💡 Key Takeaway
+## 5. Signal Qualification — Adding Time to the Decision
 
-My approach to this project was:
+The instructor's implementation used TON timers to qualify the pressure-switch conditions.
 
-```text
-Process Description
+The architecture was no longer:
+
+    Sensor Changes
+          ↓
+    Act
+
+It became:
+
+    Sensor Changes
+          ↓
+    Detect Condition
+          ↓
+    TON
+          ↓
+    Condition Must Remain Valid
+          ↓
+    Timer DONE
+          ↓
+    Accept Condition
+
+This introduced a new question into my reasoning:
+
+> "Has this condition remained valid long enough that I trust it?"
+
+For example:
+
+    Low-pressure condition appears
+            ↓
+    Start 5-second timer
+            ↓
+    Condition remains valid?
+          /       \
+        NO         YES
+        ↓           ↓
+    Reset TON    TON.DN
+                    ↓
+             Accept low-pressure
+                 condition
+
+Now a momentary input change does not necessarily become a machine-state change.
+
+The timer acts as input qualification.
+
+This showed me that the truth table had correctly described the desired process states, but it had deliberately abstracted away the physical behavior of the sensors producing those states.
+
+---
+
+## 6. Conditions and Events Are Not the Same Thing
+
+The instructor's program also introduced one-shots after the qualification timers.
+
+Initially, this looked like additional complexity.
+
+Comparing the architecture rung by rung helped me understand why it was there.
+
+A timer DONE bit describes a condition:
+
+> "Low pressure has remained valid for 5 seconds."
+
+That condition may remain TRUE for many PLC scans.
+
+But:
+
+> "Start the pump."
+
+is an event.
+
+It only needs to happen once.
+
+The ONS converts:
+
+    Sustained Qualified Condition
+
+into:
+
+    One-Scan Event
+
+Conceptually:
+
+    Low-pressure condition
+            ↓
+    TON
+            ↓
+    Timer .DN
+            ↓
+    ONS
+            ↓
+    Pump Start Trigger
+
+The timer answers:
+
+> "Is this condition trustworthy?"
+
+The one-shot answers:
+
+> "Did this qualified event just occur?"
+
+Those are different jobs.
+
+This gave me another architecture pattern:
+
+    CONDITION
         ↓
-Truth / State Table
+    QUALIFY
         ↓
-Identify Repeated Input States
-        ↓
-Remove True Duplicates
-        ↓
-Identify Where Previous State Matters
-        ↓
-Build Ladder Logic
-        ↓
-Test
-        ↓
-Review / Refactor
-```
+    EVENT
 
-The most important discovery was that **identical current inputs do not always mean identical required behavior**.
+---
 
-For the pump, the repeated `LOW = 1 / HIGH = 0` state required different pump outputs depending on whether pressure was rising or falling. That revealed the need for persistent state and led to the seal-in / hysteresis solution.
+## 7. The Hold Circuit Now Made More Sense
 
-I initially applied a similar memory-oriented approach to the indicator light, which produced a working latch/unlatch implementation. After reviewing the result, however, I recognized that the light did not need to remember anything — it only needed to represent the current state of the low-pressure switch.
+Once the start command becomes a one-scan event, the pump cannot depend on that event remaining TRUE.
 
-That created a clear refactoring opportunity:
+Instead:
 
-> **Use memory only when the process requires memory.**
+    Pump Start Event
+            ↓
+    Pump turns ON
+            ↓
+    Pump's own control bit
+            ↓
+    Seal-in / Hold
+            ↓
+    Pump continues running
 
-The project therefore demonstrates not only how I arrived at a working PLC program, but also how I evaluated my own solution afterward and identified a simpler implementation.
+A separately qualified stop event then breaks that hold:
+
+    High-pressure condition
+            ↓
+    TON
+            ↓
+    ONS
+            ↓
+    Pump Interrupt
+            ↓
+    Break Hold
+            ↓
+    Pump OFF
+
+This let me recognize the larger architecture:
+
+    DETECT
+       ↓
+    QUALIFY
+       ↓
+    TRIGGER
+       ↓
+    HOLD
+       ↓
+    INTERRUPT
+
+Each part has a distinct responsibility.
+
+    XIC / XIO
+    =
+    What is the sensor reporting?
+
+    TON
+    =
+    Has that condition existed long enough to trust?
+
+    ONS
+    =
+    Did this qualified event just occur?
+
+    Start Trigger
+    =
+    Request a machine-state transition
+
+    Seal-In
+    =
+    Preserve the new machine state
+
+    Interrupt
+    =
+    Explicitly end that state
+
+---
+
+## 💡 Final Takeaway
+
+This project changed the way I approach PLC programming in several stages.
+
+First, I learned that a truth/state table can be used to derive explicit control logic from a process description.
+
+    Process Requirements
+            ↓
+    Truth / State Table
+            ↓
+    Explicit Input / Output Relationships
+            ↓
+    Ladder Logic
+
+Then the truth table itself exposed when Boolean logic was not enough.
+
+When the same current inputs required different outputs:
+
+    LOW = 1
+    HIGH = 0
+    PUMP = ON
+
+and later:
+
+    LOW = 1
+    HIGH = 0
+    PUMP = OFF
+
+I could prove that some previous process information had to be preserved.
+
+That was how I discovered the need for memory.
+
+I then learned to distinguish:
+
+    Does the output require memory?
+
+from:
+
+    Can the output simply represent the current process state?
+
+That distinction allowed me to recognize that the pump required state persistence while the indicator did not require retained memory in my original Boolean implementation.
+
+After verifying that every condition in the assignment was satisfied, comparing my solution with the instructor's implementation exposed the next layer.
+
+The truth table described:
+
+> What should happen?
+
+The instructor's timer and event architecture forced me to also consider:
+
+> When should I trust that the physical condition has actually happened?
+
+and:
+
+> Is this something that remains true, or is it an event that should happen once?
+
+My reasoning therefore evolved from:
+
+    Process Description
+            ↓
+    Truth Table
+            ↓
+    Explicit Boolean Logic
+
+to:
+
+    Process Description
+            ↓
+    Truth / State Table
+            ↓
+    Identify Explicit Logic
+            ↓
+    Identify Repeated States
+            ↓
+    Determine Whether History Matters
+            ↓
+    Add Memory Only Where Required
+            ↓
+    Build Functional Ladder Logic
+            ↓
+    Verify Every Required Condition
+            ↓
+    Refactor Unnecessary Memory
+            ↓
+    Consider Physical Input Behavior
+            ↓
+    Qualify Conditions
+            ↓
+    Convert Qualified Conditions Into Events
+            ↓
+    Hold Machine State
+            ↓
+    Interrupt State Intentionally
+
+The biggest lesson was therefore not simply how to use a TON, ONS, seal-in, OTL, OTU, XIC, or XIO.
+
+It was learning how to determine why each of those tools is needed.
+
+The truth table gave me a way to derive the explicit logic.
+
+Repeated states taught me when memory must persist.
+
+Refactoring taught me when memory should not persist.
+
+Comparing my solution with the instructor's implementation taught me that a logically correct state model still has to interact with imperfect physical devices operating over time.
+
+The larger design pattern I now recognize is:
+
+> **Derive the State → Determine Memory → Detect → Qualify → Trigger → Hold → Interrupt**
 
 <img width="1212" height="341" alt="Screenshot 2026-09-16 at 5 19 49 PM" src="https://github.com/user-attachments/assets/0a73f6a6-3074-4f25-a098-79eb75e5e8db" />
 <img width="1208" height="518" alt="Screenshot 2026-09-16 at 5 19 57 PM" src="https://github.com/user-attachments/assets/78052336-061a-46fc-ab9b-9f2872491337" />
