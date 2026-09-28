@@ -595,11 +595,13 @@ The next lesson came from comparing a logically correct solution with a more ind
 
 ### Before — Initial Truth-Table / Boolean Implementation
 
-<!-- Add original implementation screenshot here -->
+<img width="1212" height="341" alt="Screenshot 2026-09-16 at 5 19 49 PM" src="https://github.com/user-attachments/assets/0a73f6a6-3074-4f25-a098-79eb75e5e8db" />
+<img width="1208" height="518" alt="Screenshot 2026-09-16 at 5 19 57 PM" src="https://github.com/user-attachments/assets/78052336-061a-46fc-ab9b-9f2872491337" />
+<img width="1203" height="547" alt="Screenshot 2026-09-16 at 5 20 03 PM" src="https://github.com/user-attachments/assets/b8172a69-41de-4528-ad5e-9400b39b7b7c" />
 
 ### After — Refactored Real-World Control Architecture
 
-<!-- Add refactored implementation screenshot here -->
+
 
 ---
 
@@ -1270,13 +1272,5 @@ The larger design process I now recognize is:
 
 That progression moved this project from simply making the ladder logic satisfy the assignment toward understanding how control logic represents and manages a real physical process.
 
-
-
-### Before — Initial Truth-Table / Boolean Implementation
-<img width="1212" height="341" alt="Screenshot 2026-09-16 at 5 19 49 PM" src="https://github.com/user-attachments/assets/0a73f6a6-3074-4f25-a098-79eb75e5e8db" />
-<img width="1208" height="518" alt="Screenshot 2026-09-16 at 5 19 57 PM" src="https://github.com/user-attachments/assets/78052336-061a-46fc-ab9b-9f2872491337" />
-<img width="1203" height="547" alt="Screenshot 2026-09-16 at 5 20 03 PM" src="https://github.com/user-attachments/assets/b8172a69-41de-4528-ad5e-9400b39b7b7c" />
-
-### After — Refactored Real-World Control Architecture
 
 
