@@ -601,11 +601,11 @@ The next lesson came from comparing a logically correct solution with a more ind
 
 ### After — Refactored Real-World Control Architecture
 
-<img width="1187" height="306" alt="Screenshot 2026-09-28 at 9 20 58 PM" src="https://github.com/user-attachments/assets/5afa9ae2-452a-4517-82de-f3f467b0cb35" />
-<img width="1171" height="571" alt="Screenshot 2026-09-28 at 9 20 51 PM" src="https://github.com/user-attachments/assets/489ff0cf-212c-4b47-8e9e-b36512aad814" />
-<img width="1195" height="490" alt="Screenshot 2026-09-28 at 9 20 40 PM" src="https://github.com/user-attachments/assets/96dba3ab-018c-4e15-9362-594672bd58c8" />
-<img width="1187" height="559" alt="Screenshot 2026-09-28 at 9 20 31 PM" src="https://github.com/user-attachments/assets/7f5b3a88-0b3c-4882-b236-6e4707870331" />
 <img width="1192" height="242" alt="Screenshot 2026-09-28 at 9 20 26 PM" src="https://github.com/user-attachments/assets/93c485dd-7840-4207-8594-c3a871e0d95e" />
+<img width="1187" height="559" alt="Screenshot 2026-09-28 at 9 20 31 PM" src="https://github.com/user-attachments/assets/7f5b3a88-0b3c-4882-b236-6e4707870331" />
+<img width="1195" height="490" alt="Screenshot 2026-09-28 at 9 20 40 PM" src="https://github.com/user-attachments/assets/96dba3ab-018c-4e15-9362-594672bd58c8" />
+<img width="1171" height="571" alt="Screenshot 2026-09-28 at 9 20 51 PM" src="https://github.com/user-attachments/assets/489ff0cf-212c-4b47-8e9e-b36512aad814" />
+<img width="1187" height="306" alt="Screenshot 2026-09-28 at 9 20 58 PM" src="https://github.com/user-attachments/assets/5afa9ae2-452a-4517-82de-f3f467b0cb35" />
 
 ---
 
