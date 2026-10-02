@@ -1,4 +1,3 @@
-```markdown
 # Generator Start/Stop Control — I/O Mapping, Signal Flow & Emulator Troubleshooting
 
 ## Project Overview
@@ -529,4 +528,3 @@ My troubleshooting process is now:
 7. If the entire ladder appears frozen, verify the processor is actually in RUN.
 
 What started as a simple generator Start/Stop program became a much better lesson in PLC scan behavior, I/O mapping, signal ownership, order of operations, forcing/testing, and systematic troubleshooting.
-```
