@@ -12,6 +12,9 @@ The biggest things I learned were:
 - Why I need to manipulate the actual input or output when testing the complete chain
 - The difference between being **ONLINE** with a PLC and the PLC actually being in **RUN**
 - How to troubleshoot by finding the exact point where a signal stops changing
+<img width="1436" height="746" alt="Screenshot 2026-10-01 at 10 23 35 PM" src="https://github.com/user-attachments/assets/1f55c45b-8406-4643-a212-b39615205eca" />
+<img width="1205" height="646" alt="Screenshot 2026-10-01 at 10 23 50 PM" src="https://github.com/user-attachments/assets/f162fc92-d023-4f7a-9418-7eb9418b1db9" />
+<img width="1217" height="482" alt="Screenshot 2026-10-01 at 10 23 58 PM" src="https://github.com/user-attachments/assets/0807c2c7-9edd-421e-a8fe-13f5a37a974e" />
 
 ---
 
