@@ -29,9 +29,9 @@ PLC Input Bit = 0 or 1
       ↓
 XIC / XIO evaluates the bit
 ```
-<img width="1205" height="672" alt="Screenshot 2026-10-02 at 2 18 56 AM" src="https://github.com/user-attachments/assets/6df925d7-f6a3-473b-869f-43315f2cf22d" />
-<img width="1217" height="661" alt="Screenshot 2026-10-02 at 2 19 12 AM" src="https://github.com/user-attachments/assets/19d228e9-0029-4fba-acbc-dc561f7fdf4e" />
 <img width="1215" height="339" alt="Screenshot 2026-10-02 at 2 19 05 AM" src="https://github.com/user-attachments/assets/b4e3c62e-ccf1-40bc-9ce2-d80a6441d8cd" />
+<img width="1217" height="661" alt="Screenshot 2026-10-02 at 2 19 12 AM" src="https://github.com/user-attachments/assets/19d228e9-0029-4fba-acbc-dc561f7fdf4e" />
+<img width="1205" height="672" alt="Screenshot 2026-10-02 at 2 18 56 AM" src="https://github.com/user-attachments/assets/6df925d7-f6a3-473b-869f-43315f2cf22d" />
 
 
 ### Start vs Stop Pushbuttons
