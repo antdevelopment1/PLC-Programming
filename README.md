@@ -6,7 +6,7 @@ This repository documents my hands-on progression through PLC programming patter
 
 ## Focus Areas
 
-This repository will progressively cover topics including:
+This repository will progressively cover topics including::
 
 - PLC scan cycle and program execution
 - Discrete input and output mapping
