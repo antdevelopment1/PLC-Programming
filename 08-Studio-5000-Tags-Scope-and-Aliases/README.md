@@ -21,6 +21,10 @@ This is the sequence of questions I worked through. It's a record of how I'm try
 
 The last few questions were what I needed to get to. Just saying “an alias is another name” didn't answer where the value comes from or what updates it.
 
+<img width="1419" height="721" alt="Screenshot 2026-10-25 at 11 47 07 PM" src="https://github.com/user-attachments/assets/d178de0c-1a6d-492d-a831-34f338324da7" />
+<img width="1105" height="513" alt="Screenshot 2026-10-25 at 11 47 20 PM" src="https://github.com/user-attachments/assets/263ec9a2-4733-4708-a1c5-37de9b5506df" />
+
+
 ## First, where did my tag go?
 
 I created `engine_NOT_at_rated_speed` and couldn't find it in Controller Tags. My teacher had selected the controller name under Scope. Mine was set to `Program_1`, so it appeared under that program's Parameters and Local Tags.
