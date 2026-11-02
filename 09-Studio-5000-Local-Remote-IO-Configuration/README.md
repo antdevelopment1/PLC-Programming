@@ -13,6 +13,9 @@ For this assignment, I configured local and remote ControlLogix I/O, then create
 - Which tags reference physical I/O, and which hold their own values?
 - Does entering a tag directly in the table create it the same way as the New Tag dialog?
 
+<img width="1440" height="685" alt="Screenshot 2026-11-01 at 10 25 14 PM" src="https://github.com/user-attachments/assets/4f0bf127-e450-4f4b-84f6-da108f539e04" />
+
+
 ## Hardware Configuration
 
 I created `Module2_Assignment` with a 1756-L71 controller and two 7-slot chassis.
