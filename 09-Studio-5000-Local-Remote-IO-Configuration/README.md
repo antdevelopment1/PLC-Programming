@@ -12,9 +12,9 @@ For this assignment, I configured local and remote ControlLogix I/O, then create
 - What does each part of `Local:1:I.Data.0` represent, and how does the address change for an output?
 - Which tags reference physical I/O, and which hold their own values?
 - Does entering a tag directly in the table create it the same way as the New Tag dialog?
+- Why does `Tank_Level` have an expand arrow while the BOOL tags don't?
 
-<img width="1440" height="685" alt="Screenshot 2026-11-01 at 10 25 14 PM" src="https://github.com/user-attachments/assets/4f0bf127-e450-4f4b-84f6-da108f539e04" />
-
+<img width="1440" height="685" alt="Screenshot 2026-11-01 at 10 25 14 PM" src="https://github.com/user-attachments/assets/4f0bf127-e450-4f4b-84f6-da108f539e04" />
 
 ## Hardware Configuration
 
@@ -77,6 +77,12 @@ I also created two base tags:
 These have their own storage and aren't automatically connected to physical I/O. Calling a tag `Tank_Level` doesn't connect it to the analog module; that connection would need to be made separately.
 
 I entered the base tags directly in the Edit Tags table. That also creates the tags without opening the New Tag dialog.
+
+### Why Tank_Level Has an Expand Arrow
+
+I noticed that `Tank_Level` has an expand arrow while the BOOL tags don't. That comes from the data type: an `INT` contains 16 bits, numbered 0–15, which Studio 5000 lets me view individually. A `BOOL` is already a single bit, so there’s nothing further to expand.
+
+The arrow reflects the structure of the value. It doesn't mean the tag is connected to a physical module.
 
 ## What I Took From This
 
