@@ -21,4 +21,4 @@ I closed the project to get to the “No Controller” screen, then selected the
 
 Seeing the emulator in Who Active told me I could reach it. Controller Properties told me what my project was set up to run on. Once I separated those two things, it made sense to use my own emulator slot and the virtual backplane. The COM3 error came from a separate serial driver.
 
-Download sends the project to the controller. Upload reads it back from the controller. Go Online lets me connect using the matching project file I already have.<img width="1411" height="819" alt="Screenshot 2026-11-02 at 11 43 22 PM" src="https://github.com/user-attachments/assets/a6746feb-b3b5-4d9a-81c8-a095c7abdc87" />
+Download sends the project to the controller. Upload reads it back from the controller. Go Online lets me connect using the matching project file I already have.
