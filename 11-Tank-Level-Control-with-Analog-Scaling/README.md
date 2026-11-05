@@ -46,3 +46,6 @@ The alias gets its type from what it points to.
 ## Where I left off
 
 Next I’ll write the rung that converts volts to gallons. Then I’ll use that value to start filling below 80% and keep filling until the tank reaches 90%.
+
+<img width="1440" height="640" alt="Screenshot 2026-11-04 at 11 42 51 PM" src="https://github.com/user-attachments/assets/fa47bdb5-e0c3-49e6-9add-21c47a441667" />
+
