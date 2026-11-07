@@ -1,4 +1,4 @@
-# 12 — Climb the Ladder: Tank Level Control Continued
+# 11 — Climb the Ladder: Tank Level Control With Analog Scaling Continued
 
 I’m continuing the tank-fill exercise in Studio 5000. With the hardware and I/O set up, I worked on converting the sensor voltage into gallons and controlling the fill valve.
 
