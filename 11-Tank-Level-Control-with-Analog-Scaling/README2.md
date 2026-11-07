@@ -62,3 +62,9 @@ I’m calculating gallons, but the valve rung currently compares `Tank_Level_Fra
 The scaling and valve-control rungs are built. I tried changing the input value, but the results weren’t updating because I was still offline and hadn’t connected the emulator.
 
 Next is checking the final operands and testing the full fill cycle in the emulator.
+<img width="1024" height="354" alt="Screenshot 2026-11-07 at 2 08 55 AM" src="https://github.com/user-attachments/assets/b5365339-e071-4fc1-addc-528677c5c554" />
+<img width="1057" height="387" alt="Screenshot 2026-11-07 at 2 09 15 AM" src="https://github.com/user-attachments/assets/933ebee8-71b5-4910-813a-4df1b87a91d1" />
+<img width="1077" height="527" alt="Screenshot 2026-11-07 at 2 09 25 AM" src="https://github.com/user-attachments/assets/ae21af6d-7d30-4b4b-9ffc-d1aad11cf7be" />
+
+
+
